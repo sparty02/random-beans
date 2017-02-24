@@ -47,7 +47,17 @@ class RandomizationContext {
 
     private final Stack<RandomizationContextStackItem> stack;
 
+    private Class<?> rootType;
+
     RandomizationContext(final EnhancedRandomParameters parameters, final String... excludedFields) {
+        populatedBeans = new IdentityHashMap<>();
+        stack = new Stack<>();
+        this.parameters = parameters;
+        this.excludedFields = new HashSet<>(toLowerCase(Arrays.asList(excludedFields)));
+    }
+
+    RandomizationContext(Class<?> rootType, final EnhancedRandomParameters parameters, final String... excludedFields) {
+        this.rootType = rootType;
         populatedBeans = new IdentityHashMap<>();
         stack = new Stack<>();
         this.parameters = parameters;
@@ -109,5 +119,9 @@ class RandomizationContext {
 
     private int nextInt(int startInclusive, int endExclusive) {
         return startInclusive + new Random().nextInt(endExclusive - startInclusive);
+    }
+
+    public Class<?> getRootType() {
+        return rootType;
     }
 }

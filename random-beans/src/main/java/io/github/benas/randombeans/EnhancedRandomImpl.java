@@ -74,7 +74,7 @@ class EnhancedRandomImpl extends EnhancedRandom {
 
     @Override
     public <T> T nextObject(final Class<T> type, final String... excludedFields) {
-        return doPopulateBean(type, new RandomizationContext(parameters, excludedFields));
+        return doPopulateBean(type, new RandomizationContext(type, parameters, excludedFields));
     }
 
     @Override

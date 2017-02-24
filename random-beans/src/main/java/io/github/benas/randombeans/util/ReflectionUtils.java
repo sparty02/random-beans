@@ -248,7 +248,7 @@ public class ReflectionUtils {
      * @return true if the type is an enum type, false otherwise.
      */
     public static boolean isEnumType(final Class<?> type) {
-        return type.isEnum();
+        return type.isEnum() || Enum.class.isAssignableFrom(type);
     }
 
     /**

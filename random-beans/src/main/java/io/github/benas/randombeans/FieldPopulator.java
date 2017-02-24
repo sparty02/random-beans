@@ -25,10 +25,13 @@ package io.github.benas.randombeans;
 
 import io.github.benas.randombeans.api.ObjectGenerationException;
 import io.github.benas.randombeans.api.Randomizer;
+import io.github.benas.randombeans.randomizers.misc.EnumRandomizer;
 import io.github.benas.randombeans.randomizers.misc.SkipRandomizer;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 
 import static io.github.benas.randombeans.util.CollectionUtils.randomElementOf;
 import static io.github.benas.randombeans.util.ReflectionUtils.*;
@@ -104,7 +107,9 @@ class FieldPopulator {
         Type fieldGenericType = field.getGenericType();
 
         Object value;
-        if (isArrayType(fieldType)) {
+        if (isEnumType(fieldType)){
+            value = new EnumRandomizer(getGenericEnumTypeIfAny(field, context)).getRandomValue();
+        } else if (isArrayType(fieldType)) {
             value = arrayPopulator.getRandomArray(fieldType, context);
         } else if (isCollectionType(fieldType)) {
             value = collectionPopulator.getRandomCollection(field, context);
@@ -123,6 +128,24 @@ class FieldPopulator {
             }
         }
         return value;
+    }
+
+    private Class<?> getGenericEnumTypeIfAny(Field field, RandomizationContext context) {
+        Class<?> declaringClass = field.getDeclaringClass();
+        TypeVariable<? extends Class<?>>[] typeParameters = declaringClass.getTypeParameters();
+        // if generic type, retrieve actual type from declaring class
+        if (typeParameters.length > 0) {
+            ParameterizedType genericSuperclass = (ParameterizedType)context.getRootType().getGenericSuperclass();
+            Type[] actualTypeArguments = genericSuperclass.getActualTypeArguments();
+            Type actualTypeArgument = actualTypeArguments[0];
+            try {
+                return Class.forName(actualTypeArgument.getTypeName());
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e); // the class should have been already loaded without any problem at this point
+            }
+        }
+        return field.getType();
+
     }
 
     void setScanClasspathForConcreteTypes(boolean scanClasspathForConcreteTypes) {
